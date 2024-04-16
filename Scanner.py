@@ -1,3 +1,4 @@
+import ipaddress
 from scapy.all import *
 import random
 import string
