@@ -73,7 +73,7 @@ def handle_connection(conn, player_number):
 def main():
     # Set up the server socket
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    host = "localhost"
+    host = "127.0.0.1"
     port = 60005
 
     # Bind the socket to the host and port
