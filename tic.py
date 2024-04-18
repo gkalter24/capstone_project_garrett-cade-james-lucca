@@ -59,22 +59,20 @@ def play_game(conn1, conn2):
             current_conn.sendall("INVALID_MOVE".encode())
 
 # Function to handle each player's connection
+# Function to handle each player's connection
 def handle_connection(conn, player_number):
     conn.sendall("Welcome, Player {}!".format(player_number).encode())
-    while True:
-        # Receive the command from the player
-        command = conn.recv(1024).decode()
+    
+    # Send the command to start the game
+    conn.sendall("START_GAME".encode())
 
-        # Start the game when both players are connected
-        if command == "START_GAME":
-            return
 
 # Main function to handle server setup and connections
 def main():
     # Set up the server socket
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     host = "127.0.0.1"
-    port = 60005
+    port = 5002
 
     # Bind the socket to the host and port
     server_socket.bind((host, port))
