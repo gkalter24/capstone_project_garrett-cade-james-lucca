@@ -1,11 +1,13 @@
 import socket
 import sys
 
-# Function to print the Tic Tac Toe board
 def print_board(board):
-    for row in board:
-        print(" | ".join(row))
-        print("-" * 5)
+    print("  0 | 1 | 2 ")
+    print(" -----------")
+    for i, row in enumerate(board):
+        print("{} | {} | {} |".format(i, ' | '.join(row)))
+        print(" -----------")
+
 
 # Function to check if any player has won
 def check_win(board, mark):
@@ -27,12 +29,12 @@ def play_game(conn1, conn2):
     while True:
         # Send current state of the board to both players
         for conn in (conn1, conn2):
-            conn.sendall("CURRENT_BOARD".encode())
+            conn.sendall("CURRENT BOARD\n".encode())
             conn.sendall(str(board).encode())
 
         # Receive move from the current player
         current_conn = conn1 if current_player == "X" else conn2
-        current_conn.sendall("YOUR_TURN".encode())
+        current_conn.sendall("YOUR_TURN\n".encode())
         move = current_conn.recv(1024).decode().split(",")
         row, col = int(move[0]), int(move[1])
 
@@ -43,29 +45,24 @@ def play_game(conn1, conn2):
             # Check if the current player wins
             if check_win(board, current_player):
                 for conn in (conn1, conn2):
-                    conn.sendall("WINNER".encode())
+                    conn.sendall("WINNER\n".encode())
                     conn.sendall(current_player.encode())
                 return
 
             # Check for a tie
             if all(cell != " " for row in board for cell in row):
                 for conn in (conn1, conn2):
-                    conn.sendall("TIE".encode())
+                    conn.sendall("TIE\n".encode())
                 return
 
             # Switch to the other player
             current_player = "O" if current_player == "X" else "X"
         else:
-            current_conn.sendall("INVALID_MOVE".encode())
+            current_conn.sendall("INVALID_MOVE\n".encode())
 
-# Function to handle each player's connection
 # Function to handle each player's connection
 def handle_connection(conn, player_number):
-    conn.sendall("Welcome, Player {}!".format(player_number).encode())
-    
-    # Send the command to start the game
-    conn.sendall("START_GAME".encode())
-
+    conn.sendall("Welcome, Player {}!\n".format(player_number).encode())
 
 # Main function to handle server setup and connections
 def main():
