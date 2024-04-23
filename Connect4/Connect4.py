@@ -48,6 +48,9 @@ class GameState:
             print("Column is full! Try again")
         return False
 
+    def switch_player(self):
+        self.cur_player = 'O' if self.cur_player == 'X' else 'X'
+
 
     @staticmethod
     def main():
