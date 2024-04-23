@@ -22,41 +22,53 @@ def play_game(conn1, conn2):
     board = [[" " for _ in range(3)] for _ in range(3)]
     current_player = "X"
 
+    conn1.sendall("You are Xs\n".encode())
+    conn2.sendall("You are Os\n".encode())
+
     while True:
         for conn in (conn1, conn2):
             conn.sendall("CURRENT_BOARD\n".encode())
             send_board(conn, board)
 
         current_conn = conn1 if current_player == "X" else conn2
-        current_conn.sendall("YOUR_TURN\n".encode())
+        waiting_conn = conn2 if current_player == "X" else conn1
+
+        current_conn.sendall("Your turn...\n".encode())
+        waiting_conn.sendall("Waiting for other player...\n".encode())
+
         move = current_conn.recv(1024).decode().split(",")
-        row, col = int(move[0]), int(move[1])
+        row, col = int(move[0]) - 1, int(move[1]) - 1  # Adjust for 1-based indexing
 
         if 0 <= row < 3 and 0 <= col < 3 and board[row][col] == " ":
             board[row][col] = current_player
 
             if check_win(board, current_player):
+                winning_player = "Player 1" if current_player != "O" else "Player 2"
+                winning_message = "Congratulations! You won, {} got 3 in a row!\n".format(winning_player)
+                current_conn.sendall(winning_message.encode())
+
                 for conn in (conn1, conn2):
-                    conn.sendall("WINNER\n".encode())
-                    conn.sendall(current_player.encode())
-                return
+                    if conn != current_conn:
+                        conn.sendall("LOSER\n".encode())
 
             if all(cell != " " for row in board for cell in row):
                 for conn in (conn1, conn2):
                     conn.sendall("TIE\n".encode())
-                return
 
             current_player = "O" if current_player == "X" else "X"
         else:
             current_conn.sendall("INVALID_MOVE\n".encode())
 
+
+
 def handle_connection(conn, player_number):
-    conn.sendall("Welcome, Player {}!\n".format(player_number).encode())
+    instructions = "Welcome, Player {}!\nInstructions: When it's your turn, enter the row and column numbers separated by a comma (e.g., '1,2') to place your mark on the board.\n".format(player_number)
+    conn.sendall(instructions.encode())
 
 def main():
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     host = "127.0.0.1"
-    port = 5002
+    port = 5001
 
     server_socket.bind((host, port))
     server_socket.listen(2)
@@ -79,3 +91,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
