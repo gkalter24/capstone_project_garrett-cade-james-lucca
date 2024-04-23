@@ -51,15 +51,24 @@ class GameState:
     def switch_player(self):
         self.cur_player = 'O' if self.cur_player == 'X' else 'X'
 
-
     @staticmethod
     def main():
+        play_again = 'y'
+        while play_again.lower() == 'y':
             game = GameState()
             game.print_instructions()
             game.print_game()
-            col = int(input("Enter the column number to place your piece: "))
-            game.make_move(col)
-            game.print_game()
+
+            while True:
+                print(f"Player {game.cur_player}'s turn. Moves: {game.moves}")
+                try:
+                    col = int(input("Enter the column number to place your piece: "))
+                except ValueError:
+                    print("Invalid input, please enter a valid number!")
+                    continue
+
+                game.make_move(col)
+                game.print_game()
 
 if __name__ == "__main__":
     GameState.main()
