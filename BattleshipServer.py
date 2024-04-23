@@ -48,7 +48,7 @@ class BattleshipGame:
 class BattleshipServer:
     def __init__(self):
         self.host = "127.0.0.1"
-        self.port = 5567
+        self.port = 5578
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.players = []
 
@@ -79,6 +79,10 @@ class BattleshipServer:
                 print(str(i))
                 string = "Sink the other players ships (" + str(num) + "):"
                 client_socket.send(string.encode())
+                string2 = "Wait for your turn"
+                opponent_socket.send(string2.encode())
+                board = self.format_board(i + 1, game)
+                client_socket.send(board.encode())
                 try:
                     data = client_socket.recv(1024).decode()
                     if not data:
@@ -90,6 +94,7 @@ class BattleshipServer:
                     else:
                         response = "Miss"
                     client_socket.send(response.encode())
+                    response = "Opponent " + response
                     opponent_socket.send(response.encode())
                 except Exception as e:
                     print(f"Error handling client: {e}")
@@ -112,6 +117,13 @@ class BattleshipServer:
             string = "Ship placed successfully." + str(num)
             client_socket.send(string.encode())
             num -= 1
+
+    def format_board(self, player, game):
+        if player == 1:
+            board = '\n'.join([' '.join(row) for row in game.p1OppBoard])
+        else:
+            board = '\n'.join([' '.join(row) for row in game.p2OppBoard])
+        return board
 
 if __name__ == "__main__":
     server = BattleshipServer()
