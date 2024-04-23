@@ -4,74 +4,53 @@ import threading
 class BattleshipGame:
     def __init__(self):
         self.board_size = 10
-        self.ships_count = 5
-        self.board = self.create_board()
-        self.player_boards = {}  # Store player boards and ship positions
-        self.hits = []
+        self.p1board = [['~' for _ in range(self.board_size)] for _ in range(self.board_size)]
+        self.p1OppBoard = [['~' for _ in range(self.board_size)] for _ in range(self.board_size)]
+        self.p2board = [['~' for _ in range(self.board_size)] for _ in range(self.board_size)]
+        self.p2OppBoard = [['~' for _ in range(self.board_size)] for _ in range(self.board_size)]
+        self.p1ships = []
+        self.p2ships = []
 
-    def create_board(self):
-        return [['~' for _ in range(self.board_size)] for _ in range(self.board_size)]
-
-    def set_player_board(self, player_socket, board_setup):
-        # Parse the board setup data and store it for the player
-        # Example implementation:
-        # Store player's board setup as a list of tuples (x, y) representing ship positions (ships with dimensions of 1x1)
-        try:
-            ships = [tuple(map(int, ship.split(","))) for ship in board_setup.split(";")]
-            if len(ships) != self.ships_count:
-                raise ValueError("Invalid number of ships")
-            self.player_boards[player_socket] = ships
-        except Exception as e:
-            print(f"Error setting up board for player: {e}")
-
-    def get_player_board(self, player_socket):
-        # Return the board for the specified player
-        if player_socket in self.player_boards:
-            return self.player_boards[player_socket]
+   
+    def place_ship(self, player, x, y):
+        if player == 1:
+            if (x, y) in self.p1ships:
+                return False
+            if x > self.board_size or y > self.board_size:
+                return False
+            self.p1ships.append((x, y))
+            return True
         else:
-            return []
+            if (x, y) in self.p2ships:
+                return False
+            if x > self.board_size or y > self.board_size:
+                return False
+            self.p2ships.append((x, y))
+            return True
 
-    def is_valid_move(self, x, y):
-        return 0 <= x < self.board_size and 0 <= y < self.board_size
-
-    def is_hit(self, x, y, player_socket):
-        # Check if the specified position is occupied by a ship of the given player
-        player_board = self.get_player_board(player_socket)
-        return (x, y) in player_board
-
-    def handle_move(self, x, y, player_socket):
-        # Handle a move from a player
-        try:
-            if not self.is_valid_move(x, y):
-                return False, "Invalid move, out of board bounds."
-            
-            if (x, y) in self.hits:
-                return False, "Already guessed this position."
-
-            if self.is_hit(x, y, player_socket):
-                self.hits.append((x, y))
-                self.board[y][x] = 'X'
-                return True, "Hit!"
+    def check_hit(self, x, y, player):
+        player = 1 - player
+        if player == 1:
+            if (x, y) in self.p2ships:
+                self.p1OppBoard[x][y] = "X"
+                return True
             else:
-                self.hits.append((x, y))
-                self.board[y][x] = '*'
-                return False, "Miss!"
-        except Exception as e:
-            return False, f"Error handling move: {e}"
-
-    def check_win(self, player_socket):
-        # Check if all ships of the given player have been sunk
-        player_board = self.get_player_board(player_socket)
-        return all(coord in self.hits for coord in player_board)
-        
+                self.p1OppBoard[x][y] = "O"
+                return False
+        if player == 0:
+            if (x, y) in self.p1ships:
+                self.p2OppBoard[x][y] = "X"
+                return True
+            else:
+                self.p2OppBoard[x][y] = "O"
+                return False
 
 class BattleshipServer:
     def __init__(self):
         self.host = "127.0.0.1"
-        self.port = 5555
+        self.port = 5567
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.clients = []
-        self.games = {}  # Store game instances for each pair of clients
+        self.players = []
 
     def start(self):
         self.server_socket.bind((self.host, self.port))
@@ -79,60 +58,61 @@ class BattleshipServer:
 
         print("Server is listening...")
 
-        while True:
-            client_socket, address = self.server_socket.accept()
-            print(f"Connection from {address} has been established.")
-            self.clients.append(client_socket)
-            if len(self.clients) % 2 == 0:
-                player1_socket = self.clients[-2]
-                player2_socket = self.clients[-1]
-                self.start_game(player1_socket, player2_socket)
+        while len(self.players) < 2:
+            client_socket, _ = self.server_socket.accept()
+            print("Connection established with player", len(self.players) + 1)
+            self.players.append(client_socket)
 
-    def start_game(self, player1_socket, player2_socket):
+        self.setup_game()
+
+    def setup_game(self):
         game = BattleshipGame()
-        self.games[player1_socket] = game
-        self.games[player2_socket] = game
-        self.setup_board(player1_socket, game)
-        self.setup_board(player2_socket, game)
-        self.send_board(player1_socket, game)
-        self.send_board(player2_socket, game)
-        threading.Thread(target=self.handle_client, args=(player1_socket,)).start()
-        threading.Thread(target=self.handle_client, args=(player2_socket,)).start()
+        print("Starting Game...")
+        self.setup_board(self.players[0], game, 1)
+        self.setup_board(self.players[1], game, 2)
 
-    def setup_board(self, player_socket, game):
-        # Send a message to the player to set up their board and place their ships
-        player_socket.send("setup".encode())
-        # Receive the player's board setup and ship positions
-        board_setup = player_socket.recv(1024).decode()
-        game.set_player_board(player_socket, board_setup)
-
-    def handle_client(self, client_socket):
-        game = self.games[client_socket]
-        opponent_socket = next(socket for socket in self.games if socket != client_socket)
+        print("Boards Created")
         while True:
-            data = client_socket.recv(1024).decode()
-            if not data:
-                break
-            elif data == "board":
-                self.send_board(client_socket, game)
-            else:
-                x, y = map(int, data.split(","))
-                hit, message = game.handle_move(x, y)
-                if hit:
-                    if game.check_win():
-                        self.broadcast(opponent_socket, f"win,{message}")
-                        self.broadcast(client_socket, "end")
-                        break
+            for i, client_socket in enumerate(self.players):
+                opponent_socket = self.players[1 - i]
+                num = 5
+                print(str(i))
+                string = "Sink the other players ships (" + str(num) + "):"
+                client_socket.send(string.encode())
+                try:
+                    data = client_socket.recv(1024).decode()
+                    if not data:
+                        return
+                    x, y = map(int, data.split(","))
+                    if game.check_hit(x, y, i):
+                        response = "Hit"
+                        num -= 1
                     else:
-                        self.broadcast(opponent_socket, f"hit,{message}")
-                else:
-                    self.broadcast(opponent_socket, f"miss,{message}")
-                self.send_board(client_socket, game)
+                        response = "Miss"
+                    client_socket.send(response.encode())
+                    opponent_socket.send(response.encode())
+                except Exception as e:
+                    print(f"Error handling client: {e}")
+                    return
 
-    def send_board(self, client_socket, game):
-        board_str = '\n'.join([' '.join(row) for row in game.get_player_board(client_socket)])
-        client_socket.send(board_str.encode())
+    def setup_board(self, client_socket, game, player):
+        print("Getting ships from player " + str(player))
+        client_socket.send("Place your ships. (5  remaining) Enter ship coordinates as 'x,y' (e.g., '0,0').".encode())
+        num = 4
+        for i in range(5):
+            try:
+                data = client_socket.recv(1024).decode()
+                x, y = map(int, data.split(","))
+                if not game.place_ship(player, x, y):
+                    client_socket.send("Invalid placement. Try again.".encode())
+                    continue
+            except ValueError:
+                client_socket.send("Invalid input. Use format 'x,y'.".encode())
+                continue
+            string = "Ship placed successfully." + str(num)
+            client_socket.send(string.encode())
+            num -= 1
 
-    def broadcast(self, client_socket, message):
-        client_socket.send(message.encode())
-
+if __name__ == "__main__":
+    server = BattleshipServer()
+    server.start()

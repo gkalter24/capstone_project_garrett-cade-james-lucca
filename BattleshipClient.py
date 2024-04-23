@@ -1,57 +1,50 @@
 import socket
-import sys
-
 
 class BattleshipClient:
-    def __init__(self, host, port):
-        self.host = host
-        self.port = port
+    def __init__(self):
+        self.host = "127.0.0.1"
+        self.port = 5567
         self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.connect()
 
     def connect(self):
-        try:
-            self.client_socket.connect((self.host, self.port))
-            print("Connected to server.")
-        except Exception as e:
-            print(f"Connection failed: {e}")
-            sys.exit()
+        self.client_socket.connect((self.host, self.port))
+        print("Connected to server.")
 
-    def start(self):
-        self.connect()
+    def setup(self):
+        message = self.client_socket.recv(1024).decode()
+        print(message)
+        count = 0
         while True:
-            data = self.client_socket.recv(1024).decode()
-            if data == "setup":
-                self.setup_board()
-                self.send_board_setup()
-            elif data == "end":
-                print("Game over.")
-                sys.exit()
-            else:
-                self.print_board()
-                self.get_player_move()
+            try:
+                move = input("Enter your move (x,y): ")
+                self.client_socket.send(move.encode())
+                response = self.client_socket.recv(1024).decode()
+                print(response)
+                if "Ship placed successfully." in response:
+                    count += 1
+                if count > 4:
+                    self.play()
+                    break
+            except KeyboardInterrupt:
+                print("Game ended.")
+                break
 
-    def setup_board(self):
-        # Implement player board setup logic
-        pass
+    def play(self):
+        print("Ready to Start")
+        
+        while True:
+            try:
+                message = self.client_socket.recv(1024).decode()
+                print(message)
+                move = input("Enter your move (x,y): ")
+                self.client_socket.send(move.encode())
+                response = self.client_socket.recv(1024).decode()
+                print(response)
+            except KeyboardInterrupt:
+                print("Game ended.")
+                break
 
-    def send_board_setup(self):
-        # Implement sending the player's board setup to the server
-        pass
-
-    def print_board(self):
-        try:
-            board = self.client_socket.recv(1024).decode()
-            print("Your Board:")
-            print(board)
-        except Exception as e:
-            print(f"Error printing board: {e}")
-
-    def get_player_move(self):
-        move = input("Enter your move (x,y): ")
-        self.send_move(move)
-
-    def send_move(self, move):
-        try:
-            self.client_socket.send(move.encode())
-        except Exception as e:
-            print(f"Error sending move: {e}")
+if __name__ == "__main__":
+    client = BattleshipClient()
+    client.setup()
