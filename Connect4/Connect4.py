@@ -43,13 +43,29 @@ class GameState:
             if self.board[i][col] == ' ':
                 self.board[i][col] = self.cur_player
                 self.moves += 1
-                return True
+                if self.check_winner(i, col):
+                    return True
+                break
         else:
             print("Column is full! Try again")
         return False
 
     def switch_player(self):
         self.cur_player = 'O' if self.cur_player == 'X' else 'X'
+
+    def check_winner(self, row, col):
+        directions = [(0, 1), (1, 0), (1, 1), (1, -1)]
+        for dirX, dirY in directions:
+            count = 1
+            for j in [-1, 1]:
+                newX, newY = row + dirX * j, col + dirY * j
+                while 0 <= newX < self.rows and 0 <= newY < self.cols and self.board[newX][newY] == self.cur_player:
+                    count += 1
+                    if count == self.win_count:
+                        return True
+                    newX += dirX * j
+                    newY += dirY * j
+        return False
 
     @staticmethod
     def main():
@@ -67,8 +83,22 @@ class GameState:
                     print("Invalid input, please enter a valid number!")
                     continue
 
-                game.make_move(col)
-                game.print_game()
+                if game.make_move(col):
+                    game.print_game()
+                    print(f"Player {game.cur_player} wins!")
+                    break
+                elif game.check_full():
+                    game.print_game()
+                    print("Board is full, it's a draw!")
+                    break
+                else:
+                    game.print_game()
+                    game.switch_player()
+
+            play_again = input("Do you want to play again? (y/n): ").strip()
+
+        print("Thanks for playing!")
+
 
 if __name__ == "__main__":
     GameState.main()
