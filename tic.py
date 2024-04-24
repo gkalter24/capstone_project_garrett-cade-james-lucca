@@ -1,9 +1,5 @@
 import socket
 
-def print_board(board):
-    for row in board:
-        print(" ".join(row))
-
 def check_win(board, mark):
     for i in range(3):
         if all(cell == mark for cell in board[i]):
