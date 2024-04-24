@@ -16,7 +16,18 @@ def check_win(board, mark):
 
 def send_board(conn, board):
     for row in board:
-        conn.sendall(" ".join([cell if cell != " " else "_" for cell in row]).encode() + b"\n")
+        formatted_row = []
+        for cell in row:
+            if cell == " ":
+                formatted_row.append("_")
+            else:
+                formatted_row.append(cell)
+        
+        joined_row = " ".join(formatted_row)
+        joined_row += "\n"
+        
+        encoded_row = joined_row.encode()
+        conn.sendall(encoded_row)
 
 def play_game(conn1, conn2):
     board = [[" " for _ in range(3)] for _ in range(3)]
@@ -27,38 +38,53 @@ def play_game(conn1, conn2):
 
     while True:
         for conn in (conn1, conn2):
-            conn.sendall("CURRENT_BOARD\n".encode())
+            conn.sendall("CURRENT BOARD\n".encode())
             send_board(conn, board)
 
-        current_conn = conn1 if current_player == "X" else conn2
-        waiting_conn = conn2 if current_player == "X" else conn1
+        if current_player == "X":
+            current_conn = conn1
+            waiting_conn = conn2
+        else:
+            current_conn = conn2
+            waiting_conn = conn1
 
         current_conn.sendall("Your turn...\n".encode())
         waiting_conn.sendall("Waiting for other player...\n".encode())
 
-        move = current_conn.recv(1024).decode().split(",")
-        row, col = int(move[0]) - 1, int(move[1]) - 1  # Adjust for 1-based indexing
+        valid_move = False
+        while not valid_move:
+            current_conn.sendall("Enter your move (row,col): ".encode())
+            move = current_conn.recv(1024).decode().strip()
+            if ',' in move:
+                try:
+                    row, col = map(int, move.split(","))
+                    row -= 1  # Adjust for 1-based indexing
+                    col -= 1
+                    if 0 <= row < 3 and 0 <= col < 3 and board[row][col] == " ":
+                        valid_move = True
+                    else:
+                        current_conn.sendall("Invalid move. Please try again.\n".encode())
+                except ValueError:
+                    current_conn.sendall("Invalid input. Please enter row and column numbers separated by comma (e.g., '1,2').\n".encode())
+            else:
+                current_conn.sendall("Invalid input. Please enter row and column numbers separated by comma (e.g., '1,2').\n".encode())
 
-        if 0 <= row < 3 and 0 <= col < 3 and board[row][col] == " ":
-            board[row][col] = current_player
+        board[row][col] = current_player
 
-            if check_win(board, current_player):
-                winning_player = "Player 1" if current_player != "O" else "Player 2"
-                winning_message = "Congratulations! You won, {} got 3 in a row!\n".format(winning_player)
-                current_conn.sendall(winning_message.encode())
+        if check_win(board, current_player):
+            winning_player = "Player 1" if current_player != "O" else "Player 2"
+            winning_message = "Congratulations! You won, {} got 3 in a row!\n".format(winning_player)
+            current_conn.sendall(winning_message.encode())
 
-                for conn in (conn1, conn2):
-                    if conn != current_conn:
-                        conn.sendall("LOSER\n".encode())
+            for conn in (conn1, conn2):
+                if conn != current_conn:
+                    conn.sendall("You lost!\n".encode())
 
-            if all(cell != " " for row in board for cell in row):
-                for conn in (conn1, conn2):
-                    conn.sendall("TIE\n".encode())
+        if all(cell != " " for row in board for cell in row):
+            for conn in (conn1, conn2):
+                conn.sendall("Tie game!\n".encode())
 
-            current_player = "O" if current_player == "X" else "X"
-        else:
-            current_conn.sendall("INVALID_MOVE\n".encode())
-
+        current_player = "O" if current_player == "X" else "X"
 
 
 def handle_connection(conn, player_number):
