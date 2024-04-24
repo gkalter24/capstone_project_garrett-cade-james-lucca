@@ -3,7 +3,7 @@ import socket
 class BattleshipClient:
     def __init__(self):
         self.host = "127.0.0.1"
-        self.port = 5578
+        self.port = 5585
         self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.connect()
 
@@ -37,6 +37,8 @@ class BattleshipClient:
             try:
                 message = self.client_socket.recv(1024).decode()
                 print(message)
+                if message == "Player 1 Wins!" or message == "Player 2 Wins!":
+                    return
                 if message == "Wait for your turn":
                     message2 = self.client_socket.recv(1024).decode()
                     print(message2)
@@ -45,10 +47,14 @@ class BattleshipClient:
                 
                 board = self.client_socket.recv(1024).decode()
                 print(board)
+                if board == "Player 1 Wins!" or board == "Player 2 Wins!":
+                    return
                 move = input("Enter your move (x,y): ")
                 self.client_socket.send(move.encode())
                 response = self.client_socket.recv(1024).decode()
                 print(response)
+                if response == "Player 1 Wins!" or response == "Player 2 Wins!":
+                    return
             except KeyboardInterrupt:
                 print("Game ended.")
                 break

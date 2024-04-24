@@ -1,5 +1,6 @@
 import socket
 import threading
+import time
 
 class BattleshipGame:
     def __init__(self):
@@ -10,6 +11,8 @@ class BattleshipGame:
         self.p2OppBoard = [['~' for _ in range(self.board_size)] for _ in range(self.board_size)]
         self.p1ships = []
         self.p2ships = []
+        self.guessedp1 = set()
+        self.guessedp2 = set()
 
    
     def place_ship(self, player, x, y):
@@ -33,6 +36,7 @@ class BattleshipGame:
         if player == 1:
             if (x, y) in self.p2ships:
                 self.p1OppBoard[x][y] = "X"
+                self.guessedp1.add((x,y))
                 return True
             else:
                 self.p1OppBoard[x][y] = "O"
@@ -40,6 +44,7 @@ class BattleshipGame:
         if player == 0:
             if (x, y) in self.p1ships:
                 self.p2OppBoard[x][y] = "X"
+                self.guessedp2.add((x,y))
                 return True
             else:
                 self.p2OppBoard[x][y] = "O"
@@ -48,7 +53,7 @@ class BattleshipGame:
 class BattleshipServer:
     def __init__(self):
         self.host = "127.0.0.1"
-        self.port = 5578
+        self.port = 5585
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.players = []
 
@@ -75,12 +80,18 @@ class BattleshipServer:
         while True:
             for i, client_socket in enumerate(self.players):
                 opponent_socket = self.players[1 - i]
-                num = 5
                 print(str(i))
-                string = "Sink the other players ships (" + str(num) + "):"
+                num1 = 5 - len(game.guessedp1) 
+                num2 = 5 - len(game.guessedp2)
+                time.sleep(1)
+                if i == 0:
+                    string = "Sink the other players ships (" + str(num1) + "):"
+                else:
+                    string = "Sink the other players ships (" + str(num2) + "):"
                 client_socket.send(string.encode())
                 string2 = "Wait for your turn"
                 opponent_socket.send(string2.encode())
+                time.sleep(1)
                 board = self.format_board(i + 1, game)
                 client_socket.send(board.encode())
                 try:
@@ -90,12 +101,25 @@ class BattleshipServer:
                     x, y = map(int, data.split(","))
                     if game.check_hit(x, y, i):
                         response = "Hit"
-                        num -= 1
                     else:
                         response = "Miss"
+                    if len(game.guessedp1) > 4:
+                        response = "Player 1 Wins!"
+                        client_socket.send(response.encode())
+                        opponent_socket.send(response.encode())
+                        print("Game Over, Player 1 Wins!")
+                        return
+                    if len(game.guessedp2) > 4:
+                        response = "Player 2 Wins!"
+                        client_socket.send(response.encode())
+                        opponent_socket.send(response.encode())
+                        print("Game Over, Player 2 Wins!")
+                        return
+                    time.sleep(1)
                     client_socket.send(response.encode())
                     response = "Opponent " + response
                     opponent_socket.send(response.encode())
+                    time.sleep(1)
                 except Exception as e:
                     print(f"Error handling client: {e}")
                     return
