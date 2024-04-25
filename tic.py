@@ -118,7 +118,7 @@ def handle_connection(conn, player_number, game_started):
 def main():
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     host = "127.0.0.1"
-    port = 5002
+    port = 5000
 
     server_socket.bind((host, port))
     server_socket.listen(2)
@@ -134,7 +134,7 @@ def main():
 
     handle_connection(conn1, 1, game_started)
     handle_connection(conn2, 2, game_started)
-    print("Starting game...")
+    print("Starting game... Socket will not be listening for other players")
 
     game_started = True  # Set game_started to True after both players have connected
 
@@ -146,3 +146,17 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
