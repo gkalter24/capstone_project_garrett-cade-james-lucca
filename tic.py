@@ -79,8 +79,14 @@ def play_game(conn1, conn2):
         if all(cell != " " for row in board for cell in row):
             for conn in (conn1, conn2):
                 conn.sendall("Tie game!\n".encode())
+            break  # Added to break out of the while loop when there's a tie
 
         current_player = "O" if current_player == "X" else "X"
+
+    conn1.close()
+    conn2.close()
+    server_socket.close()  # Close the server socket when the game ends
+
 
 
 def handle_connection(conn, player_number):
@@ -90,12 +96,13 @@ def handle_connection(conn, player_number):
 def main():
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     host = "127.0.0.1"
-    port = 5001
+    port = 5003
 
     server_socket.bind((host, port))
     server_socket.listen(2)
     print("Waiting for players...")
-    print("Open 2 new terminals and type 'telnet 127.0.0.1 5001' to begin")
+    print(f"Open 2 new terminals and type 'telnet 127.0.0.1 {port}' to begin")
+
 
     conn1, addr1 = server_socket.accept()
     print("Player 1 connected.")
