@@ -63,9 +63,6 @@ def play_game(conn1, conn2):
                             current_conn.sendall("Invalid move. Please try again.\n".encode())
                     else:
                         current_conn.sendall("Invalid input. Please enter row and column numbers separated by comma (e.g., '1,2').\n".encode())
-                except UnicodeDecodeError:
-                    print("Player disconnected unexpectedly.")
-                    return
                 except Exception as e:
                     print("An error occurred while processing a move:", e)
                     return
@@ -100,7 +97,6 @@ def play_game(conn1, conn2):
                 return
 
             current_player = "O" if current_player == "X" else "X"
-
     except Exception as e:
         print("An error occurred during the game:", e)
         return
@@ -146,6 +142,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
