@@ -1,117 +1,110 @@
 import socket
-import threading 
 
-class GameState:
+class ConnectFour:
     def __init__(self):
         self.rows = 6
         self.cols = 7
-        self.win_count = 4
-        self.board = [[' ' for i in range(self.cols)] for j in range(self.rows)]
-        self.cur_player = 'X'
-        self.moves = 0
+        self.board = [[' ' for _ in range(self.cols)] for _ in range(self.rows)]
+        self.current_player = 'X'
 
-    def print_instructions(self):
-        return (
-        "Welcome to Connect Four!\n"
-        "In this two player game, both players will alternate turns placing their chips in the board.\n"
-        "The first player to place 4 consecutive pieces in a row, either horizontally, vertically, or diagonally, wins!\n"
-        "If the board is filled without any player satisfying the win condition, the game will end in a draw."
-    )
+    def send_board(self, conn):
+        conn.sendall("Current Board:\n".encode())
+        for row in self.board:
+            formatted_row = " | ".join(row)
+            conn.sendall(f"| {formatted_row} |\n".encode())
+        conn.sendall("  0   1   2   3   4   5   6  \n".encode())
 
+    def check_win(self):
+        directions = [(0, 1), (1, 0), (1, 1), (1, -1)] 
+        for x in range(self.rows):
+            for y in range(self.cols):
+                if self.board[x][y] == self.current_player:  
+                    for dx, dy in directions:
+                        count = 1  
+                        for step in range(1, 4):  
+                            nx, ny = x + dx * step, y + dy * step
+                            if 0 <= nx < self.rows and 0 <= ny < self.cols and self.board[nx][ny] == self.current_player:
+                                count += 1
+                            else:
+                                break 
+                        if count == 4:  
+                            return True
+        return False
 
-    def print_game(self):
-        game_str = ''
-        for p in range((self.cols * 2) + 1):
-            game_str += '-'
-        game_str += '\n'
-        for i in range(self.rows):
-            for j in range(self.cols):
-                game_str += f'|{self.board[i][j]}'
-            game_str += '|\n'
-            for k in range((self.cols * 2) + 1):
-                game_str += '-'
-            game_str += '\n'
-        game_str += ' ' + ' '.join(str(i) for i in range(self.cols)) + '\n'
-        return game_str
-
-    def check_full(self):
-        for i in range(self.rows):
-            for j in range(self.cols):
-                if self.board[i][j] == ' ':
-                    return False
-        return True
-
-    def make_move(self, col):
-        if col < 0 or col >= self.cols:
-            print("Invalid input, try again!")
-            return False
-        for i in range(self.rows - 1, -1, -1):
-            if self.board[i][col] == ' ':
-                self.board[i][col] = self.cur_player
-                self.moves += 1
-                if self.check_winner(i, col):
+    def make_move(self, row, col):
+        if 0 <= row < self.rows and 0 <= col < self.cols and self.board[row][col] == ' ':
+            for r in range(self.rows-1, -1, -1):
+                if self.board[r][col] == ' ':
+                    self.board[r][col] = self.current_player
                     return True
-                break
-        else:
-            print("Column is full! Try again")
         return False
 
     def switch_player(self):
-        self.cur_player = 'O' if self.cur_player == 'X' else 'X'
+        self.current_player = 'O' if self.current_player == 'X' else 'X'
 
-    def check_winner(self, row, col):
-        directions = [(0, 1), (1, 0), (1, 1), (1, -1)]
-        for dirX, dirY in directions:
-            count = 1
-            for j in [-1, 1]:
-                newX, newY = row + dirX * j, col + dirY * j
-                while 0 <= newX < self.rows and 0 <= newY < self.cols and self.board[newX][newY] == self.cur_player:
-                    count += 1
-                    if count == self.win_count:
-                        return True
-                    newX += dirX * j
-                    newY += dirY * j
-        return False
+def play_game(conn1, conn2):
+    game = ConnectFour()
 
-def start_server():
+    conn1.sendall("You are Xs\n".encode())
+    conn2.sendall("You are Os\n".encode())
+
+    while True:
+        for conn in (conn1, conn2):
+            game.send_board(conn)
+
+        current_conn = conn1 if game.current_player == 'X' else conn2
+        waiting_conn = conn2 if current_conn == conn1 else conn1
+
+        current_conn.sendall("Your turn...\n".encode())
+        waiting_conn.sendall("Waiting for other player...\n".encode())
+
+        valid_move = False
+        while not valid_move:
+            current_conn.sendall("Enter your move (col): ".encode())
+            move = current_conn.recv(1024).decode().strip()
+            try:
+                col = int(move)
+                if game.make_move(0, col):  # Just need column, rows are handled in `make_move`
+                    valid_move = True
+                else:
+                    current_conn.sendall("Invalid move. Please try again.\n".encode())
+            except ValueError:
+                current_conn.sendall("Invalid input. Please enter a column number.\n".encode())
+
+        if game.check_win():
+            game.send_board(current_conn)
+            game.send_board(waiting_conn)
+            winning_message = "Congratulations! You won, you got 4 in a row!\n"
+            current_conn.sendall(winning_message.encode())
+            waiting_conn.sendall("Sorry, you lost!\n".encode())
+            break
+
+        if all(cell != ' ' for row in game.board for cell in row):
+            for conn in (conn1, conn2):
+                conn.sendall("Tie game!\n".encode())
+            break
+
+        game.switch_player()
+
+def main():
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_socket.bind(('127.0.0.1', 8001))
+    host = "127.0.0.3"
+    port = 8001
+
+    server_socket.bind((host, port))
     server_socket.listen(2)
-    print("Server started. Waiting for players to connect...")
+    print("Server started. Waiting for players...")
 
-    clients = []
-    while len(clients) < 2:
-        client_socket, addr = server_socket.accept()
-        clients.append(client_socket)
-        print(f"Player connected from {addr}")
+    conn1, _ = server_socket.accept()
+    print("Player 1 connected.")
+    conn2, _ = server_socket.accept()
+    print("Player 2 connected.")
 
-    game = GameState()
-    player_turn = 0
+    play_game(conn1, conn2)
 
-    for client in clients:
-        client.send(game.print_instructions().encode())
-        client.send(game.print_game().encode())
-
-    game_over = False
-    while not game_over:
-        current_player = clients[player_turn]
-        move = int(current_player.recv(1024).decode())
-        valid_move, message = game.make_move(move)
-        if valid_move:
-            if message:  
-                game_over = True
-                for client in clients:
-                    client.send((game.print_game() + "\n" + message).encode())
-            else: 
-                player_turn = 1 - player_turn
-                for client in clients:
-                    client.send(game.print_game().encode())
-        else:
-            current_player.send(message.encode())  
-
-    for client in clients:
-        client.close()
+    conn1.close()
+    conn2.close()
     server_socket.close()
 
-
-threading.Thread(target=start_server).start()
+if __name__ == "__main__":
+    main()
