@@ -63,6 +63,8 @@ def play_game(conn1, conn2):
                             current_conn.sendall("Invalid move. Please try again.\n".encode())
                     else:
                         current_conn.sendall("Invalid input. Please enter row and column numbers separated by comma (e.g., '1,2').\n".encode())
+                except BrokenPipeError:
+                    print("Player's connection was unexpectedly closed.")
                 except Exception as e:
                     print("An error occurred while processing a move:", e)
                     return
@@ -78,6 +80,7 @@ def play_game(conn1, conn2):
                     if conn != current_conn:
                         conn.sendall("You lost! {} got 3 in a row!\n".format(winning_player).encode())
 
+                # Send the final board state to both players before closing the server
                 for conn in (conn1, conn2):
                     conn.sendall("FINAL BOARD\n".encode())
                     send_board(conn, board)
@@ -88,6 +91,7 @@ def play_game(conn1, conn2):
                 for conn in (conn1, conn2):
                     conn.sendall("Tie game!\n".encode())
 
+                # Send the final board state to both players before closing the server
                 for conn in (conn1, conn2):
                     conn.sendall("FINAL BOARD\n".encode())
                     send_board(conn, board)
@@ -95,6 +99,10 @@ def play_game(conn1, conn2):
                 return
 
             current_player = "O" if current_player == "X" else "X"
+
+    except (ConnectionResetError, NameError):
+        print("Player disconnected unexpectedly.")
+        return
     except Exception as e:
         print("An error occurred during the game:", e)
         return
@@ -130,7 +138,7 @@ def main():
     handle_connection(conn2, 2, game_started)
     print("Starting game... Socket will not be listening for other players")
 
-    game_started = True  
+    game_started = True  # Set game_started to True after both players have connected
 
     play_game(conn1, conn2)
 
