@@ -68,6 +68,7 @@ class BattleshipServer:
             print("Connection established with player", len(self.players) + 1)
             self.players.append(client_socket)
 
+
         self.setup_game()
 
     def setup_game(self):
@@ -108,12 +109,14 @@ class BattleshipServer:
                         client_socket.send(response.encode())
                         opponent_socket.send(response.encode())
                         print("Game Over, Player 1 Wins!")
+                        self.server_socket.close()
                         return
                     if len(game.guessedp2) > 4:
                         response = "Player 2 Wins!"
                         client_socket.send(response.encode())
                         opponent_socket.send(response.encode())
                         print("Game Over, Player 2 Wins!")
+                        self.server_socket.close()
                         return
                     time.sleep(1)
                     client_socket.send(response.encode())

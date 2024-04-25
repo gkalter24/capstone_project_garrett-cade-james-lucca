@@ -8,8 +8,11 @@ class BattleshipClient:
         self.connect()
 
     def connect(self):
-        self.client_socket.connect((self.host, self.port))
-        print("Connected to server.")
+        try:
+            self.client_socket.connect((self.host, self.port))
+            print("Connected to server.")
+        except:
+            print("Connected to server failed, game full.")
 
     def setup(self):
         message = self.client_socket.recv(1024).decode()
@@ -42,7 +45,7 @@ class BattleshipClient:
                 if message == "Wait for your turn":
                     message2 = self.client_socket.recv(1024).decode()
                     print(message2)
-                    if message2 == "Player 1 Wins!" or board == "Player 2 Wins!":
+                    if message2 == "Player 1 Wins!" or message2 == "Player 2 Wins!":
                         return
                     message3 = self.client_socket.recv(1024).decode()
                     print(message3)
