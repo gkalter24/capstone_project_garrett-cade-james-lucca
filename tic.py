@@ -95,6 +95,7 @@ def main():
     server_socket.bind((host, port))
     server_socket.listen(2)
     print("Waiting for players...")
+    print("Open 2 new terminals and type 'telnet 127.0.0.1 5001' to begin")
 
     conn1, addr1 = server_socket.accept()
     print("Player 1 connected.")
