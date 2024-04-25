@@ -42,6 +42,8 @@ class BattleshipClient:
                 if message == "Wait for your turn":
                     message2 = self.client_socket.recv(1024).decode()
                     print(message2)
+                    if message2 == "Player 1 Wins!" or board == "Player 2 Wins!":
+                        return
                     message3 = self.client_socket.recv(1024).decode()
                     print(message3)
                 

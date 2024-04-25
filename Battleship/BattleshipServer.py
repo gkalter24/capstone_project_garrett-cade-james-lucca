@@ -80,7 +80,7 @@ class BattleshipServer:
         while True:
             for i, client_socket in enumerate(self.players):
                 opponent_socket = self.players[1 - i]
-                print(str(i))
+                #print(str(i))
                 num1 = 5 - len(game.guessedp1) 
                 num2 = 5 - len(game.guessedp2)
                 time.sleep(1)
@@ -100,9 +100,9 @@ class BattleshipServer:
                         return
                     x, y = map(int, data.split(","))
                     if game.check_hit(x, y, i):
-                        response = "Hit"
+                        response = "Hit!"
                     else:
-                        response = "Miss"
+                        response = "Miss!"
                     if len(game.guessedp1) > 4:
                         response = "Player 1 Wins!"
                         client_socket.send(response.encode())
@@ -138,7 +138,7 @@ class BattleshipServer:
             except ValueError:
                 client_socket.send("Invalid input. Use format 'x,y'.".encode())
                 continue
-            string = "Ship placed successfully." + str(num)
+            string = "Ship placed successfully. " + str(num) + " remaining"
             client_socket.send(string.encode())
             num -= 1
 
