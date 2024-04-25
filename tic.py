@@ -78,7 +78,6 @@ def play_game(conn1, conn2):
                     if conn != current_conn:
                         conn.sendall("You lost! {} got 3 in a row!\n".format(winning_player).encode())
 
-                # Send the final board state to both players before closing the server
                 for conn in (conn1, conn2):
                     conn.sendall("FINAL BOARD\n".encode())
                     send_board(conn, board)
@@ -89,7 +88,6 @@ def play_game(conn1, conn2):
                 for conn in (conn1, conn2):
                     conn.sendall("Tie game!\n".encode())
 
-                # Send the final board state to both players before closing the server
                 for conn in (conn1, conn2):
                     conn.sendall("FINAL BOARD\n".encode())
                     send_board(conn, board)
@@ -132,7 +130,7 @@ def main():
     handle_connection(conn2, 2, game_started)
     print("Starting game... Socket will not be listening for other players")
 
-    game_started = True  # Set game_started to True after both players have connected
+    game_started = True  
 
     play_game(conn1, conn2)
 
