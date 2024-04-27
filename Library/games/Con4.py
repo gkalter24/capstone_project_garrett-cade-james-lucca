@@ -45,40 +45,57 @@ class ConnectFour:
     def start_game(self, conn1, conn2):
         conn1.sendall("You are Xs\n".encode())
         conn2.sendall("You are Os\n".encode())
-        
+
+        connections = [conn1, conn2]
         while True:
-            self.send_board(conn1)
-            self.send_board(conn2)
-            
-            current_conn = conn1 if self.current_player == 'X' else conn2
-            waiting_conn = conn2 if current_conn == conn1 else conn1
-            
-            current_conn.sendall("Your turn...\n".encode())
-            waiting_conn.sendall("Waiting for other player...\n".encode())
-            
-            valid_move = False
-            while not valid_move:
-                current_conn.sendall("Enter your move (col): ".encode())
-                move = current_conn.recv(1024).decode().strip()
-                try:
-                    col = int(move)
-                    if self.make_move(0, col):  
-                        valid_move = True
-                    else:
-                        current_conn.sendall("Invalid move. Please try again.\n".encode())
-                except ValueError:
-                    current_conn.sendall("Invalid input. Please enter a column number.\n".encode())
-            
-            if self.check_win():
+            try:    
                 self.send_board(conn1)
                 self.send_board(conn2)
-                winner_message = "Congratulations! You won, you got 4 in a row!\n"
-                current_conn.sendall(winner_message.encode())
-                waiting_conn.sendall("Sorry, you lost!\n".encode())
+
+                current_conn = conn1 if self.current_player == 'X' else conn2
+                waiting_conn = conn2 if current_conn == conn1 else conn1
+
+                current_conn.sendall("Your turn...\n".encode())
+                waiting_conn.sendall("Waiting for other player...\n".encode())
+
+                valid_move = False
+                while not valid_move:
+                    current_conn.sendall("Enter your move (col): ".encode())
+                    move = current_conn.recv(1024).decode().strip()
+                    try:
+                        col = int(move)
+                        if 0 <= col < self.cols and self.board[0][col] == ' ':
+                            if self.make_move(0, col):
+                                valid_move = True
+                            else:
+                                current_conn.sendall("Invalid move. Try again.\n".encode())
+                        else:
+                            current_conn.sendall("Invalid column. Please choose a valid column between 0 and 6.\n".encode())
+                    except ValueError:
+                        current_conn.sendall("Invalid input. Please enter a numeric column number.\n".encode())
+
+                if self.check_win():
+                    self.send_board(conn1)
+                    self.send_board(conn2)
+                    winner_message = "Congratulations! You won, you got 4 in a row!\n"
+                    current_conn.sendall(winner_message.encode())
+                    waiting_conn.sendall("Sorry, you lost!\n".encode())
+                    break
+                if all(cell != ' ' for row in self.board for cell in row):
+                    for conn in connections:
+                        conn.sendall("Tie game!\n".encode())
+                    break
+
+                self.switch_player()
+
+            except (BrokenPipeError, ConnectionResetError, socket.error) as e:
+                print(f"Connection error: {e}")
+                for conn in connections:
+                    conn.close()
                 break
-            if all(cell != ' ' for row in self.board for cell in row):
-                conn1.sendall("Tie game!\n".encode())
-                conn2.sendall("Tie game!\n".encode())
+            except Exception as e:
+                print(f"Unexpected error: {e}")
+                for conn in connections:
+                    conn.close()
                 break
-            
-            self.switch_player()
+
