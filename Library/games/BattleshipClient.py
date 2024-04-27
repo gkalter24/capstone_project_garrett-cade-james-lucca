@@ -3,25 +3,38 @@ import socket
 class BattleshipClient:
     def __init__(self):
         self.host = "127.0.0.1"
-        self.port = 5585
+        self.port = 5587
         self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.connect()
+        self.terminate = False
 
     def connect(self):
         try:
             self.client_socket.connect((self.host, self.port))
             print("Connected to server.")
         except:
-            print("Connected to server failed, game full.")
+            print("Connection to server failed, game full.")
+            self.terminate = True
 
     def setup(self):
+        if self.terminate:
+           return
         message = self.client_socket.recv(1024).decode()
+        if not message:
+            s = "Connection Error. Game Over!"
+            print(s)
+            return
         print(message)
         count = 0
         while True:
             try:
                 move = input("Enter your move (x,y): ")
-                self.client_socket.send(move.encode())
+                try:
+                    self.client_socket.send(move.encode())
+                except socket.error:
+                    s = "Connection error. Game Over!"
+                    print(s)
+                    return
                 response = self.client_socket.recv(1024).decode()
                 print(response)
                 if "Ship placed successfully." in response:
@@ -34,31 +47,35 @@ class BattleshipClient:
                 break
 
     def play(self):
-        print("Ready to Start")
+        print("Ready to Start, waiting for other player to place ships")
         
         while True:
             try:
                 message = self.client_socket.recv(1024).decode()
+                if not message:
+                    s = "Connection error. Game Over!"
+                    print(s)
+                    return
                 print(message)
-                if message == "Player 1 Wins!" or message == "Player 2 Wins!":
+                if message == "Player 1 Wins!" or message == "Player 2 Wins!" or "disconnected" in message:
                     return
                 if message == "Wait for your turn":
                     message2 = self.client_socket.recv(1024).decode()
                     print(message2)
-                    if message2 == "Player 1 Wins!" or message2 == "Player 2 Wins!":
+                    if message2 == "Player 1 Wins!" or message2 == "Player 2 Wins!" or "disconnected" in message2:
                         return
                     message3 = self.client_socket.recv(1024).decode()
                     print(message3)
                 
                 board = self.client_socket.recv(1024).decode()
                 print(board)
-                if board == "Player 1 Wins!" or board == "Player 2 Wins!":
+                if board == "Player 1 Wins!" or board == "Player 2 Wins!" or "disconnected" in board:
                     return
                 move = input("Enter your move (x,y): ")
                 self.client_socket.send(move.encode())
                 response = self.client_socket.recv(1024).decode()
                 print(response)
-                if response == "Player 1 Wins!" or response == "Player 2 Wins!":
+                if response == "Player 1 Wins!" or response == "Player 2 Wins!" or "disconnected" in response:
                     return
             except KeyboardInterrupt:
                 print("Game ended.")

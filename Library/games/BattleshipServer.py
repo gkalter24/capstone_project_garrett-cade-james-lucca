@@ -53,9 +53,10 @@ class BattleshipGame:
 class BattleshipServer:
     def __init__(self):
         self.host = "127.0.0.1"
-        self.port = 5585
+        self.port = 5587
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.players = []
+        self.socket_error = False
 
     def start(self):
         self.server_socket.bind((self.host, self.port))
@@ -68,7 +69,7 @@ class BattleshipServer:
             print("Connection established with player", len(self.players) + 1)
             self.players.append(client_socket)
 
-
+        self.server_socket.close()
         self.setup_game()
 
     def setup_game(self):
@@ -76,7 +77,8 @@ class BattleshipServer:
         print("Starting Game...")
         self.setup_board(self.players[0], game, 1)
         self.setup_board(self.players[1], game, 2)
-
+        if self.socket_error:
+            return
         print("Boards Created")
         while True:
             for i, client_socket in enumerate(self.players):
@@ -89,7 +91,14 @@ class BattleshipServer:
                     string = "Sink the other players ships (" + str(num1) + "):"
                 else:
                     string = "Sink the other players ships (" + str(num2) + "):"
-                client_socket.send(string.encode())
+                try:
+                    client_socket.send(string.encode())
+                except socket.error:
+                    s = "Player " + str(i + 1) + " disconnected unexpectedly. Game Over!"
+                    print(s)
+                    opponent_socket.send(s.encode())
+                    self.cleanup()
+                    return
                 string2 = "Wait for your turn"
                 opponent_socket.send(string2.encode())
                 time.sleep(1)
@@ -98,6 +107,10 @@ class BattleshipServer:
                 try:
                     data = client_socket.recv(1024).decode()
                     if not data:
+                        s = "Player " + str(i + 1) + " disconnected unexpectedly. Game Over!"
+                        print(s)
+                        opponent_socket.send(s.encode())
+                        self.cleanup()
                         return
                     x, y = map(int, data.split(","))
                     if game.check_hit(x, y, i):
@@ -109,31 +122,55 @@ class BattleshipServer:
                         client_socket.send(response.encode())
                         opponent_socket.send(response.encode())
                         print("Game Over, Player 1 Wins!")
-                        self.server_socket.close()
+                        self.cleanup()
                         return
                     if len(game.guessedp2) > 4:
                         response = "Player 2 Wins!"
                         client_socket.send(response.encode())
                         opponent_socket.send(response.encode())
                         print("Game Over, Player 2 Wins!")
-                        self.server_socket.close()
+                        self.cleanup()
                         return
                     time.sleep(1)
                     client_socket.send(response.encode())
                     response = "Opponent " + response
                     opponent_socket.send(response.encode())
                     time.sleep(1)
-                except Exception as e:
-                    print(f"Error handling client: {e}")
-                    return
+                except ValueError:
+                    client_socket.send("Invalid input. Use format 'x,y'. You lost your turn!".encode())
+                    opponent_socket.send("Opponent entered an invalid move and lost their turn!".encode())
+                    continue
 
     def setup_board(self, client_socket, game, player):
+        if self.socket_error:
+            return
         print("Getting ships from player " + str(player))
-        client_socket.send("Place your ships. (5  remaining) Enter ship coordinates as 'x,y' (e.g., '0,0').".encode())
+        try:
+            client_socket.send("Place your ships. (5  remaining) Enter ship coordinates as 'x,y' (e.g., '0,0').".encode())
+        except socket.error:
+                    s = "Player " + str(player) + " disconnected unexpectedly. Game Over!"
+                    print(s)
+                    try:
+                        self.players[player-1].send(s.encode())
+                    except socket.error:
+                        print("")
+                    self.cleanup()
+                    self.socket_error = True
+                    return
         num = 4
-        for i in range(5):
+        while num >= 0:
             try:
                 data = client_socket.recv(1024).decode()
+                if not data:
+                    s = "Player " + str(player) + " disconnected unexpectedly. Game Over!"
+                    print(s)
+                    try:
+                        self.players[player-1].send(s.encode())
+                    except socket.error:
+                        print("")
+                    self.cleanup()
+                    self.socket_error = True
+                    return
                 x, y = map(int, data.split(","))
                 if not game.place_ship(player, x, y):
                     client_socket.send("Invalid placement. Try again.".encode())
@@ -151,6 +188,10 @@ class BattleshipServer:
         else:
             board = '\n'.join([' '.join(row) for row in game.p2OppBoard])
         return board
+    
+    def cleanup(self):
+        for client_socket in self.players:
+            client_socket.close()
 
 if __name__ == "__main__":
     server = BattleshipServer()
