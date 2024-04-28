@@ -8,8 +8,12 @@ def main():
     port = 5000
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-        sock.connect((host, port))
-        print("Connected to the game server.")
+        try:
+            sock.connect((host, port))
+            print("Connected to the game server.")
+        except:
+            print("Server full.")
+            return
 
         try:
             while True:
