@@ -13,6 +13,7 @@ def main():
 
         try:
             while True:
+                    flag = True
                     message = sock.recv(1024).decode()  
                     print(message)
                     message = sock.recv(1024).decode()  
@@ -20,11 +21,24 @@ def main():
                     if "Waiting" in message:
                         message2 = sock.recv(1024).decode()  
                         print(message2)
-                    game = input("Select a game (1,2,3,4): ")
+                        if "disconnected" in message2:
+                            return
+                    while flag:
+                        game = input("Select a game (1,2,3,4): ")
+                        try:
+                            gameNum = int(game)
+                            if gameNum in [1,2,3,4]:
+                                flag = False
+                            else:
+                                print("Invalid input, try again")
+                        except:
+                            print("Invalid input, try again")
                     sock.send(game.encode())
                     gameNum = int(game)
                     message = sock.recv(1024).decode()  
                     print(message)
+                    if "disconnected" in message:
+                            return
                     if gameNum == 1:
                         playBattleship(sock)
                         return

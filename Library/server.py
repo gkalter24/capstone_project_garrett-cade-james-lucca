@@ -17,19 +17,29 @@ def handle_two_player_session(conn1, conn2, sock3):
             conn2.sendall("Waiting for player 1 to choose a game...\n".encode())
             
             choice1 = conn1.recv(1024).decode().strip()
+            if not choice1:
+                conn2.sendall("Player 1 disconnected".encode())
+                print("Player 1 disconnected, restarting library...")
+                restartLibrary(sock3)
+                return
             print(f"Debug: Player 1 choice received: {choice1}")  
             if choice1.lower() == 'exit':
                 break
 
             conn2.sendall(f"Player 1 chose {choice1}. Please confirm by typing '{choice1}' or choose another game.".encode())
             choice2 = conn2.recv(1024).decode().strip()
+            if not choice2:
+                conn1.sendall("Player 2 disconnected".encode())
+                print("Player 2 disconnected, restarting library...")
+                restartLibrary(sock3)
+                return
             print(f"Debug: Player 2 choice received: {choice2}") 
             if choice2.lower() == 'exit':
                 break
 
             if choice1 == choice2 and choice1 in game_options:
-                conn1.sendall("Game starting.\n".encode())
-                conn2.sendall("Game starting.\n".encode())
+                conn1.sendall("Game starting. Wait for your turn...\n".encode())
+                conn2.sendall("Game starting. Wait for your turn...\n".encode())
                 print("Starting game...")
                 players = [conn1, conn2]
                 if choice1 == '1':
@@ -42,6 +52,7 @@ def handle_two_player_session(conn1, conn2, sock3):
                 conn2.sendall("Failed to agree on a game. Please try again.\n".encode())
     except socket.error:
         print("Connection Error")
+        restartLibrary(sock3)
         return
     
 
@@ -49,7 +60,8 @@ def startBattleshipServer(sock3, playerArray):
     print("Starting Battleship Game")
     server = BattleshipServer(client_sock = sock3, players = playerArray)
     server.setup_game()
-    main()
+    restartLibrary(sock3)
+    return
 
 def startConnect4Server(sock, playerArray):
     print("Starting Connect4 Game")
@@ -75,10 +87,37 @@ def main():
             conn2.sendall("Connected to server. Player 1 is ready.\n".encode())
 
             handle_two_player_session(conn1, conn2, server_socket)
+            return
 
     except KeyboardInterrupt:
         print("Server is shutting down.")
     finally:
+        #print("Finally")
+        server_socket.close()
+
+def restartLibrary(server_socket):
+    print("Waiting for new connections...")
+
+    try:
+        while True:
+            try:
+                conn1, addr1 = server_socket.accept()
+                print(f"Player 1 connected from {addr1}")
+                conn1.sendall("Connected to server. Waiting for another player...\n".encode())
+
+                conn2, addr2 = server_socket.accept()
+                print(f"Player 2 connected from {addr2}")
+                conn2.sendall("Connected to server. Player 1 is ready.\n".encode())
+
+                handle_two_player_session(conn1, conn2, server_socket)
+            except socket.error:
+                print("Connection Error")
+                return
+
+    except KeyboardInterrupt:
+        print("Server is shutting down.")
+    finally:
+        #print("Finally")
         server_socket.close()
 
 if __name__ == "__main__":
