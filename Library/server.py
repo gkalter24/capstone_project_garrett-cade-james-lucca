@@ -1,11 +1,12 @@
 import socket
 import threading
-from games.Con4 import ConnectFour 
+from games.Con4 import *
+from games.Connect4Client import * 
 from games.BattleshipServer import BattleshipGame
 from games.BattleshipServer import BattleshipServer
 game_options = {
     '1': BattleshipServer,
-    '2': ConnectFour
+    '2': ConnectFourServer
 }
 
 def handle_two_player_session(conn1, conn2, sock3):
@@ -29,10 +30,12 @@ def handle_two_player_session(conn1, conn2, sock3):
                 conn1.sendall("Game starting.\n".encode())
                 conn2.sendall("Game starting.\n".encode())
                 print("Starting game...")
+                players = [conn1, conn2]
                 if choice1 == '1':
-                    players = [conn1, conn2]
                     startBattleshipServer(sock3, players)  
                     return
+                if choice1 == '2':
+                    startConnect4Server(sock3, players)
             else:
                 conn1.sendall("Failed to agree on a game. Please try again.\n".encode())
                 conn2.sendall("Failed to agree on a game. Please try again.\n".encode())
@@ -46,6 +49,11 @@ def startBattleshipServer(sock3, playerArray):
     server = BattleshipServer(client_sock = sock3, players = playerArray)
     server.setup_game()
     main()
+
+def startConnect4Server(sock, playerArray):
+    print("Starting Connect4 Game")
+    server = ConnectFourServer(client_sock = sock, players = playerArray)
+    server.play_game(playerArray[0], playerArray[1])
 
 def main():
     host = '127.0.0.1'  

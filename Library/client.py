@@ -1,5 +1,8 @@
 import socket
 from games.BattleshipClient import BattleshipClient
+from games.Con4 import *
+from games.Connect4Client import *
+
 def main():
     host = '127.0.0.1'
     port = 5000
@@ -25,6 +28,9 @@ def main():
                     if gameNum == 1:
                         playBattleship(sock)
                         return
+                    if gameNum == 2:
+                        playConnect4(sock)
+                        return
 
         except KeyboardInterrupt:
             print("Game ended.")
@@ -34,7 +40,9 @@ def playBattleship(sock2):
      client = BattleshipClient(client_sock = sock2)
      client.setup()
 
-
+def playConnect4(sock3):
+    client = Connect4Client(sock3)
+    client.play()
 
 if __name__ == "__main__":
     main()
