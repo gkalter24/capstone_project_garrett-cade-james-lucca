@@ -40,8 +40,8 @@ def playBattleship(sock2):
      client = BattleshipClient(client_sock = sock2)
      client.setup()
 
-def playConnect4(sock3):
-    client = Connect4Client(sock3)
+def playConnect4(sock):
+    client = Connect4Client(client_sock = sock)
     client.play()
 
 if __name__ == "__main__":
