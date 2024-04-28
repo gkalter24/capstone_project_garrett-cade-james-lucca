@@ -4,6 +4,7 @@ from games.Con4 import *
 from games.Connect4Client import * 
 from games.BattleshipServer import BattleshipGame
 from games.BattleshipServer import BattleshipServer
+
 game_options = {
     '1': BattleshipServer,
     '2': ConnectFourServer
@@ -52,7 +53,7 @@ def startBattleshipServer(sock3, playerArray):
 
 def startConnect4Server(sock, playerArray):
     print("Starting Connect4 Game")
-    server = ConnectFourServer(client_sock = sock, players = playerArray)
+    server = ConnectFourServer(server_sock = sock, players = playerArray)
     server.play_game(playerArray[0], playerArray[1])
 
 def main():
