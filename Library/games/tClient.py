@@ -1,4 +1,5 @@
 import socket
+import sys
 from termios import TCIFLUSH, tcflush
 
 class TicTacToeClient:
