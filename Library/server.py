@@ -4,10 +4,13 @@ from games.Con4 import *
 from games.Connect4Client import * 
 from games.BattleshipServer import BattleshipGame
 from games.BattleshipServer import BattleshipServer
+from games.tServer import *
+from games.tClient import *
 
 game_options = {
     '1': BattleshipServer,
-    '2': ConnectFourServer
+    '2': ConnectFourServer,
+    '3': TicTacToeServer
 }
 
 def handle_two_player_session(conn1, conn2, sock3):
@@ -47,6 +50,10 @@ def handle_two_player_session(conn1, conn2, sock3):
                     return
                 if choice1 == '2':
                     startConnect4Server(sock3, players)
+                    return
+                if choice1 == '3':
+                    startTicServer(sock3, players)
+                    return
             else:
                 conn1.sendall("Failed to agree on a game. Please try again.\n".encode())
                 conn2.sendall("Failed to agree on a game. Please try again.\n".encode())
@@ -67,6 +74,15 @@ def startConnect4Server(sock, playerArray):
     print("Starting Connect4 Game")
     server = ConnectFourServer(server_sock = sock, players = playerArray)
     server.play_game(playerArray[0], playerArray[1])
+    restartLibrary(sock)
+    return
+
+def startTicServer(sock, playerArray):
+    print("Starting Tic Tac Toe Game")
+    server = TicTacToeServer(server_socket = sock, players=playerArray)
+    server.play_game(playerArray[0], playerArray[1])
+    restartLibrary(sock)
+    return
 
 def main():
     host = '127.0.0.1'  

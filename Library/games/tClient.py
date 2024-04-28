@@ -1,8 +1,6 @@
 import socket
-import sys
-from termios import TCIFLUSH, tcflush
 
-class Connect4Client:
+class TicTacToeClient:
     def __init__(self, client_sock):
         self.host = "127.0.0.1"
         self.port = 5000
@@ -11,7 +9,7 @@ class Connect4Client:
     def connect(self):
         try:
             self.client_socket.connect((self.host, self.port))
-            print("Connected to the game server.")
+            print("Connected to the Tic Tac Toe server.")
             return True
         except Exception as e:
             print(f"Unable to connect to the server: {e}")
@@ -23,7 +21,6 @@ class Connect4Client:
                 message = self.client_socket.recv(1024).decode()
                 print(message)
                 if "Enter your move" in message:
-                    tcflush(sys.stdin, TCIFLUSH)
                     move = input("")
                     self.client_socket.send(move.encode())
                 elif "Congratulations" in message or "Sorry" in message or "Tie game" in message:
@@ -36,6 +33,6 @@ class Connect4Client:
             print("Connection closed.")
 
 if __name__ == "__main__":
-    client = Connect4Client()
+    client = TicTacToeClient()
     if client.connect():
         client.play()
