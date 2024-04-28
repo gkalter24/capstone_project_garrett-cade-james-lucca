@@ -1,10 +1,10 @@
 import socket
 
 class TicTacToeClient:
-    def __init__(self, host, port):
-        self.host = host
-        self.port = port
-        self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    def __init__(self, client_sock):
+        self.host = "127.0.0.1"
+        self.port = 5000
+        self.client_socket = client_sock
 
     def connect(self):
         try:
@@ -33,6 +33,6 @@ class TicTacToeClient:
             print("Connection closed.")
 
 if __name__ == "__main__":
-    client = TicTacToeClient("127.0.0.1", 5002)
+    client = TicTacToeClient()
     if client.connect():
         client.play()

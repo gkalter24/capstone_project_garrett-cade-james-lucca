@@ -2,6 +2,7 @@ import socket
 from games.BattleshipClient import BattleshipClient
 from games.Con4 import *
 from games.Connect4Client import *
+from games.tClient import *
 
 def main():
     host = '127.0.0.1'
@@ -45,6 +46,8 @@ def main():
                     if gameNum == 2:
                         playConnect4(sock)
                         return
+                    if gameNum == 3:
+                        playTicTacToe(sock)
 
         except KeyboardInterrupt:
             print("Game ended.")
@@ -57,6 +60,10 @@ def playBattleship(sock2):
 def playConnect4(sock):
     client = Connect4Client(client_sock = sock)
     client.play()
+
+def playTicTacToe(sock):
+    client = TicTacToeClient(sock)
+    client.play
 
 if __name__ == "__main__":
     main()
