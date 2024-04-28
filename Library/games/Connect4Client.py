@@ -21,7 +21,7 @@ class Connect4Client:
                 message = self.client_socket.recv(1024).decode()
                 print(message)
                 if "Enter your move" in message:
-                    move = input("Enter your move (column number): ")
+                    move = input("")
                     self.client_socket.send(move.encode())
                 elif "Congratulations" in message or "Sorry" in message or "Tie game" in message:
                     print("Game Over.")

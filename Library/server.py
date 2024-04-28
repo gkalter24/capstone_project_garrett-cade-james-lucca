@@ -47,6 +47,7 @@ def handle_two_player_session(conn1, conn2, sock3):
                     return
                 if choice1 == '2':
                     startConnect4Server(sock3, players)
+                    return
             else:
                 conn1.sendall("Failed to agree on a game. Please try again.\n".encode())
                 conn2.sendall("Failed to agree on a game. Please try again.\n".encode())
@@ -67,6 +68,8 @@ def startConnect4Server(sock, playerArray):
     print("Starting Connect4 Game")
     server = ConnectFourServer(server_sock = sock, players = playerArray)
     server.play_game(playerArray[0], playerArray[1])
+    restartLibrary(sock)
+    return
 
 def main():
     host = '127.0.0.1'  
