@@ -4,6 +4,8 @@ from games.Con4 import *
 from games.Connect4Client import * 
 from games.BattleshipServer import BattleshipGame
 from games.BattleshipServer import BattleshipServer
+from games.tServer import *
+from games.tClient import *
 
 game_options = {
     '1': BattleshipServer,
