@@ -17,11 +17,15 @@ def main():
                     if "Waiting" in message:
                         message2 = sock.recv(1024).decode()  
                         print(message2)
+                        if "disconnected" in message2:
+                            return
                     game = input("Select a game (1,2,3,4): ")
                     sock.send(game.encode())
                     gameNum = int(game)
                     message = sock.recv(1024).decode()  
                     print(message)
+                    if "disconnected" in message:
+                            return
                     if gameNum == 1:
                         playBattleship(sock)
                         return
