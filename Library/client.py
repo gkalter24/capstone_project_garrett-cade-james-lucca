@@ -1,4 +1,6 @@
 import socket
+import sys
+from termios import TCIFLUSH, tcflush
 from games.BattleshipClient import BattleshipClient
 from games.Con4 import *
 from games.Connect4Client import *
@@ -9,22 +11,28 @@ def main():
     port = 5000
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-        sock.connect((host, port))
-        print("Connected to the game server.")
+        try:
+            sock.connect((host, port))
+            print("Connected to the game server.")
+        except:
+            print("Server full.")
+            return
 
         try:
             while True:
                     flag = True
                     message = sock.recv(1024).decode()  
                     print(message)
-                    message = sock.recv(1024).decode()  
-                    print(message)
+                    if "Connected" in message:
+                        message = sock.recv(1024).decode()  
+                        print(message)
                     if "Waiting" in message:
                         message2 = sock.recv(1024).decode()  
                         print(message2)
                         if "disconnected" in message2:
                             return
                     while flag:
+                        tcflush(sys.stdin, TCIFLUSH)
                         game = input("Select a game (1,2,3,4): ")
                         try:
                             gameNum = int(game)
@@ -38,6 +46,8 @@ def main():
                     gameNum = int(game)
                     message = sock.recv(1024).decode()  
                     print(message)
+                    if "Failed" in message:
+                        gameNum = 0
                     if "disconnected" in message:
                             return
                     if gameNum == 1:
@@ -48,6 +58,7 @@ def main():
                         return
                     if gameNum == 3:
                         playTicTacToe(sock)
+                        return
 
         except KeyboardInterrupt:
             print("Game ended.")
@@ -62,8 +73,8 @@ def playConnect4(sock):
     client.play()
 
 def playTicTacToe(sock):
-    client = TicTacToeClient(sock)
-    client.play
+    client = TicTacToeClient(client_sock = sock)
+    client.play()
 
 if __name__ == "__main__":
     main()

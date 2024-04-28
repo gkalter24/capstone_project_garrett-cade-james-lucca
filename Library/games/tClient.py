@@ -1,4 +1,5 @@
 import socket
+from termios import TCIFLUSH, tcflush
 
 class TicTacToeClient:
     def __init__(self, client_sock):
@@ -21,6 +22,7 @@ class TicTacToeClient:
                 message = self.client_socket.recv(1024).decode()
                 print(message)
                 if "Enter your move" in message:
+                    tcflush(sys.stdin, TCIFLUSH)
                     move = input("")
                     self.client_socket.send(move.encode())
                 elif "Congratulations" in message or "Sorry" in message or "Tie game" in message:
