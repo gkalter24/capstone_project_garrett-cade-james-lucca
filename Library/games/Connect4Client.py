@@ -25,7 +25,7 @@ class Connect4Client:
                 if "Enter your move" in message:
                     while True:
                         tcflush(sys.stdin, TCIFLUSH)
-                        move = input("Enter your move (x,y): ")
+                        move = input("")
                         if move != "":
                             break
                     self.client_socket.send(move.encode())
