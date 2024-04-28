@@ -4,13 +4,14 @@ from games.Con4 import ConnectFour
 from games.BattleshipServer import BattleshipGame
 from games.BattleshipServer import BattleshipServer
 game_options = {
-    '1': BattleshipServer
+    '1': BattleshipServer,
+    '2': ConnectFour
 }
 
 def handle_two_player_session(conn1, conn2, sock3):
     try:
         while True:
-            conn1.sendall("Choose a game:\n1. Connect Four\nOr type 'exit' to quit: ".encode())
+            conn1.sendall("Choose a game:\n1. Battleship\n2. Connect4\n3. Tic Tac Toe\n4. Hangman\n Or type 'exit' to quit: ".encode())
             conn2.sendall("Waiting for player 1 to choose a game...\n".encode())
             
             choice1 = conn1.recv(1024).decode().strip()
