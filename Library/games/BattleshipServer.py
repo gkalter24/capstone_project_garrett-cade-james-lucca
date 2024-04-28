@@ -51,11 +51,11 @@ class BattleshipGame:
                 return False
 
 class BattleshipServer:
-    def __init__(self):
+    def __init__(self, client_sock, players):
         self.host = "127.0.0.1"
         self.port = 5587
-        self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.players = []
+        self.server_socket = client_sock
+        self.players = players
         self.socket_error = False
 
     def start(self):
