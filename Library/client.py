@@ -1,4 +1,6 @@
 import socket
+import sys
+from termios import TCIFLUSH, tcflush
 from games.BattleshipClient import BattleshipClient
 from games.Con4 import *
 from games.Connect4Client import *
@@ -20,14 +22,16 @@ def main():
                     flag = True
                     message = sock.recv(1024).decode()  
                     print(message)
-                    message = sock.recv(1024).decode()  
-                    print(message)
+                    if "Connected" in message:
+                        message = sock.recv(1024).decode()  
+                        print(message)
                     if "Waiting" in message:
                         message2 = sock.recv(1024).decode()  
                         print(message2)
                         if "disconnected" in message2:
                             return
                     while flag:
+                        tcflush(sys.stdin, TCIFLUSH)
                         game = input("Select a game (1,2,3,4): ")
                         try:
                             gameNum = int(game)
@@ -39,8 +43,10 @@ def main():
                             print("Invalid input, try again")
                     sock.send(game.encode())
                     gameNum = int(game)
-                    message = sock.recv(1024).decode()  
+                    message = sock.recv(1024).decode()
                     print(message)
+                    if "Failed" in message:
+                        gameNum = 0
                     if "disconnected" in message:
                             return
                     if gameNum == 1:

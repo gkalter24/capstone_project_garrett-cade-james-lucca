@@ -51,7 +51,7 @@ def handle_two_player_session(conn1, conn2, sock3):
                 conn1.sendall("Failed to agree on a game. Please try again.\n".encode())
                 conn2.sendall("Failed to agree on a game. Please try again.\n".encode())
     except socket.error:
-        print("Connection Error")
+        print("Game Over/Connection Error")
         restartLibrary(sock3)
         return
     
@@ -72,6 +72,7 @@ def main():
     host = '127.0.0.1'  
     port = 5000
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     server_socket.bind((host, port))
     server_socket.listen(5)
     print("Server started. Waiting for connections...")
@@ -86,6 +87,8 @@ def main():
             print(f"Player 2 connected from {addr2}")
             conn2.sendall("Connected to server. Player 1 is ready.\n".encode())
 
+            server_socket.close()
+
             handle_two_player_session(conn1, conn2, server_socket)
             return
 
@@ -97,7 +100,12 @@ def main():
 
 def restartLibrary(server_socket):
     print("Waiting for new connections...")
-
+    host = '127.0.0.1'  
+    port = 5000
+    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    server_socket.bind((host, port))
+    server_socket.listen(5)
     try:
         while True:
             try:
@@ -109,9 +117,11 @@ def restartLibrary(server_socket):
                 print(f"Player 2 connected from {addr2}")
                 conn2.sendall("Connected to server. Player 1 is ready.\n".encode())
 
+                server_socket.close() 
+
                 handle_two_player_session(conn1, conn2, server_socket)
             except socket.error:
-                print("Connection Error")
+                print("Game Over/Connection Error")
                 return
 
     except KeyboardInterrupt:

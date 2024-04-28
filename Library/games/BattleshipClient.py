@@ -1,4 +1,6 @@
 import socket
+import sys
+from termios import TCIFLUSH, tcflush
 
 class BattleshipClient:
     def __init__(self, client_sock):
@@ -28,6 +30,7 @@ class BattleshipClient:
         count = 0
         while True:
             try:
+                tcflush(sys.stdin, TCIFLUSH)
                 move = input("Enter your move (x,y): ")
                 try:
                     self.client_socket.send(move.encode())
@@ -71,6 +74,7 @@ class BattleshipClient:
                 print(board)
                 if board == "Player 1 Wins!" or board == "Player 2 Wins!" or "disconnected" in board:
                     return
+                tcflush(sys.stdin, TCIFLUSH)
                 move = input("Enter your move (x,y): ")
                 self.client_socket.send(move.encode())
                 response = self.client_socket.recv(1024).decode()
