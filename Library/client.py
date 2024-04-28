@@ -1,5 +1,5 @@
 import socket
-
+from games.BattleshipClient import BattleshipClient
 def main():
     host = '127.0.0.1'
     port = 5000
@@ -10,33 +10,31 @@ def main():
 
         try:
             while True:
-                server_message = ""
-                while True:
-                    part = sock.recv(1024).decode()
-                    server_message += part
-                    if len(part) < 1024:  
-                        break
+                    message = sock.recv(1024).decode()  
+                    print(message)
+                    message = sock.recv(1024).decode()  
+                    print(message)
+                    if "Waiting" in message:
+                        message2 = sock.recv(1024).decode()  
+                        print(message2)
+                    game = input("Select a game (1,2,3,4): ")
+                    sock.send(game.encode())
+                    gameNum = int(game)
+                    message = sock.recv(1024).decode()  
+                    print(message)
+                    if gameNum == 1:
+                        playBattleship(sock)
+                        return
 
-                if "Your turn" in server_message:
-                    print(server_message)
-                    move = input("Enter your move: ")
-                    sock.sendall(move.encode())
-                elif "won" in server_message or "Tie game" in server_message or "lost" in server_message:
-                    print(server_message)
-                    break
-                elif "Choose a game:" in server_message:
-                    print(server_message)
-                    game_choice = input("Select a game by entering the number: ")
-                    sock.sendall(game_choice.encode())
-                elif "Waiting for" in server_message:
-                    print(server_message)
-                else:
-                    print(server_message)
+        except KeyboardInterrupt:
+            print("Game ended.")
+            return
+        
+def playBattleship(sock2):
+     client = BattleshipClient(client_sock = sock2)
+     client.setup()
 
-        except Exception as e:
-            print(f"An error occurred: {e}")
-        finally:
-            print("Game session ended.")
+
 
 if __name__ == "__main__":
     main()

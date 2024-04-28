@@ -1,11 +1,11 @@
 import socket
 
 class BattleshipClient:
-    def __init__(self):
+    def __init__(self, client_sock):
         self.host = "127.0.0.1"
         self.port = 5587
-        self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.connect()
+        self.client_socket = client_sock
+        #self.connect()
         self.terminate = False
 
     def connect(self):
