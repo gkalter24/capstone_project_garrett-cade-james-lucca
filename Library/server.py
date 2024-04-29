@@ -57,6 +57,8 @@ def handle_two_player_session(conn1, conn2, sock3):
                 if choice1 == '3':
                     startTicServer(sock3, players)
                     return
+            if choice1 == '5':
+                    return
             else:
                 conn1.sendall("Failed to agree on a game. Please try again.\n".encode())
                 conn2.sendall("Failed to agree on a game. Please try again.\n".encode())
@@ -116,6 +118,7 @@ def main():
         return
     finally:
         #print("Finally")
+        print("Library shutting down, thank you for playing!")
         server_socket.close()
 
 def restartLibrary(server_socket):

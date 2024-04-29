@@ -36,7 +36,7 @@ def main():
                         game = input("Select a game (1,2,3,4): ")
                         try:
                             gameNum = int(game)
-                            if gameNum in [1,2,3,4]:
+                            if gameNum in [1,2,3,4,5]:
                                 flag = False
                             else:
                                 print("Invalid input, try again")
@@ -61,6 +61,8 @@ def main():
                     if gameNum == 3:
                         playTicTacToe(sock)
                         return
+                    if gameNum == 5:
+                       return
 
         except KeyboardInterrupt:
             print("Game ended.")
