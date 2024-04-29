@@ -27,7 +27,10 @@ def handle_two_player_session(conn1, conn2, sock3):
                 return
             print(f"Debug: Player 1 choice received: {choice1}")  
             if choice1.lower() == 'exit':
-                break
+                conn1.close()
+                conn2.close()
+                sock3.close()
+                return
 
             conn2.sendall(f"Player 1 chose {choice1}. Please confirm by typing '{choice1}' or choose another game.".encode())
             choice2 = conn2.recv(1024).decode().strip()

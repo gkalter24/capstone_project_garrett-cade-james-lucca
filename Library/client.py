@@ -47,6 +47,8 @@ def main():
                     message = sock.recv(1024).decode()  
                     print(message)
                     if "Failed" in message:
+                        if "Choose" in message:
+                            print("here")
                         gameNum = 0
                     if "disconnected" in message:
                             return
