@@ -61,6 +61,9 @@ def main():
                     if gameNum == 3:
                         playTicTacToe(sock)
                         return
+                    if gameNum == 4:
+                        playHangperson(sock)
+                        return
                     if gameNum == 5:
                        return
 
@@ -74,6 +77,10 @@ def playBattleship(sock):
 
 def playConnect4(sock):
     client = Connect4Client(client_sock = sock)
+    client.play()
+
+def playHangperson(sock):
+    client = hangpersonClient(client_sock = sock)
     client.play()
 
 def playTicTacToe(sock):
