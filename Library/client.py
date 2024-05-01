@@ -1,6 +1,7 @@
 import socket
 import sys
 from termios import TCIFLUSH, tcflush
+from games.hangpersonClient import *
 from games.BattleshipClient import BattleshipClient
 from games.Con4 import *
 from games.Connect4Client import *
