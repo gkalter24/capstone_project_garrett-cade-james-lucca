@@ -92,3 +92,7 @@ class ConnectFourServer:
                 break
 
             game.switch_player()
+    
+    def cleanup(self):
+        for client_socket in self.players:
+            client_socket.close()

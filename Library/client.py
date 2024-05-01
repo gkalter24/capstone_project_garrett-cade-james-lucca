@@ -33,7 +33,7 @@ def main():
                             return
                     while flag:
                         tcflush(sys.stdin, TCIFLUSH)
-                        game = input("Select a game (1,2,3,4): ")
+                        game = input("Select a option (1,2,3,4,5): ")
                         try:
                             gameNum = int(game)
                             if gameNum in [1,2,3,4,5]:
@@ -68,8 +68,8 @@ def main():
             print("Game ended.")
             return
         
-def playBattleship(sock2):
-     client = BattleshipClient(client_sock = sock2)
+def playBattleship(sock):
+     client = BattleshipClient(client_sock = sock)
      client.setup()
 
 def playConnect4(sock):
