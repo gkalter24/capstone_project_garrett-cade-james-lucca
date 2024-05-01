@@ -61,6 +61,7 @@ def handle_two_player_session(conn1, conn2, sock):
                     return
                 if choice1 == '4':
                     startHangServer(sock, players)
+                    return
             else:
                 conn1.sendall("Failed to agree on a game. Please try again.\n".encode())
                 conn2.sendall("Failed to agree on a game. Please try again.\n".encode())
