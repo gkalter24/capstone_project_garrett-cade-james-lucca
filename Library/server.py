@@ -15,7 +15,7 @@ game_options = {
     '1': BattleshipServer,
     '2': ConnectFourServer,
     '3': TicTacToeServer,
-    '4': HangpersonServer
+    '4': hangpersonServer,
     '5': BattleshipServer
 }
 
