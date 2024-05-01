@@ -47,11 +47,13 @@ class TicTacToeServer:
             conn1.sendall("You are Xs\n".encode())
         except socket.error:
             conn2.sendall("Player 1 disconnected, closing connection...")
+            print("Connection error, closing game...")
             return
         try:
             conn2.sendall("You are Os\n".encode())
         except socket.error:
             conn1.sendall("Player 2 disconnected, closing connection...")
+            print("Connection error, closing game...")
             return
 
 
@@ -66,6 +68,7 @@ class TicTacToeServer:
             except socket.error:
                 s = "Opponent disconnected, closing connection..."
                 waiting_conn.sendall(s.encode())
+                print("Connection error, closing game...")
                 return
             try:
                 time.sleep(1)
@@ -73,6 +76,7 @@ class TicTacToeServer:
             except socket.error:
                 s = "Opponent disconnected, closing connection..."
                 current_conn.sendall(s.encode())
+                print("Connection error, closing game...")
                 return
 
             valid_move = False
@@ -82,11 +86,13 @@ class TicTacToeServer:
                 except socket.error:
                     s = "Opponent disconnected, closing connection..."
                     waiting_conn.sendall(s.encode())
+                    print("Connection error, closing game...")
                     return
                 move = current_conn.recv(1024).decode().strip()
                 if not move:
                     s = "Opponent disconnected, closing connection..."
                     waiting_conn.sendall(s.encode())
+                    print("Connection error, closing game...")
                     return
                 try:
                     row, col = map(int, move.split(','))
