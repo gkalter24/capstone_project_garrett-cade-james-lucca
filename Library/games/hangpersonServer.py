@@ -1,6 +1,6 @@
 import socket
 import time
-import hangpeople
+from games.hangpeople import *
 
 class player:
     def __init__(self):
