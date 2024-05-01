@@ -7,11 +7,15 @@ from games.BattleshipServer import BattleshipGame
 from games.BattleshipServer import BattleshipServer
 from games.tServer import *
 from games.tClient import *
+from games.hangpersonClient import *
+from games.hangpersonServer import *
+from games.hangpeople import *
 
 game_options = {
     '1': BattleshipServer,
     '2': ConnectFourServer,
     '3': TicTacToeServer,
+    '4': HangpersonServer
     '5': BattleshipServer
 }
 
@@ -55,6 +59,8 @@ def handle_two_player_session(conn1, conn2, sock):
                 if choice1 == '3':
                     startTicServer(sock, players)
                     return
+                if choice1 == '4':
+                    startHangServer(sock, players)
             else:
                 conn1.sendall("Failed to agree on a game. Please try again.\n".encode())
                 conn2.sendall("Failed to agree on a game. Please try again.\n".encode())
@@ -80,6 +86,13 @@ def startConnect4Server(sock, playerArray):
 def startTicServer(sock, playerArray):
     print("Starting Tic Tac Toe Game")
     server = TicTacToeServer(server_socket = sock, players=playerArray)
+    server.play_game(playerArray[0], playerArray[1])
+    restartLibrary(sock)
+    return
+
+def startHangServer(sock, playerArray):
+    print("Starting Hangperson Game")
+    server = hangpersonServer(server_socket = sock, players=playerArray)
     server.play_game(playerArray[0], playerArray[1])
     restartLibrary(sock)
     return
