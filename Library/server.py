@@ -1,5 +1,6 @@
 import socket
 import threading
+import time
 from games.Con4 import *
 from games.Connect4Client import * 
 from games.BattleshipServer import BattleshipGame
@@ -10,12 +11,14 @@ from games.tClient import *
 game_options = {
     '1': BattleshipServer,
     '2': ConnectFourServer,
-    '3': TicTacToeServer
+    '3': TicTacToeServer,
+    '5': BattleshipServer
 }
 
 def handle_two_player_session(conn1, conn2, sock):
     try:
         while True:
+            time.sleep(1)
             conn1.sendall("Choose a game:\n1. Battleship\n2. Connect4\n3. Tic Tac Toe\n4. Hangman\nOr press '5' to shut down the library ".encode())
             conn2.sendall("Waiting for player 1 to choose a game...\n".encode())
             
@@ -37,6 +40,8 @@ def handle_two_player_session(conn1, conn2, sock):
             print(f"Debug: Player 2 choice received: {choice2}") 
         
             if choice1 == choice2 and choice1 in game_options:
+                if choice1 == '5':
+                    return
                 conn1.sendall("Game starting. Wait for your turn...\n".encode())
                 conn2.sendall("Game starting. Wait for your turn...\n".encode())
                 print("Starting game...")
@@ -49,8 +54,6 @@ def handle_two_player_session(conn1, conn2, sock):
                     return
                 if choice1 == '3':
                     startTicServer(sock, players)
-                    return
-            if choice1 == '5':
                     return
             else:
                 conn1.sendall("Failed to agree on a game. Please try again.\n".encode())
