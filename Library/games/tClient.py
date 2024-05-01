@@ -22,6 +22,8 @@ class TicTacToeClient:
             while True:
                 message = self.client_socket.recv(1024).decode()
                 print(message)
+                if "disconnected" in message:
+                    return
                 if "Enter your move" in message:
                     while True:
                         tcflush(sys.stdin, TCIFLUSH)

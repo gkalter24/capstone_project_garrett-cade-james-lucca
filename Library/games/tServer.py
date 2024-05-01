@@ -1,4 +1,5 @@
 import socket
+import time
 
 class TicTacToeGame:
     def __init__(self):
@@ -13,6 +14,7 @@ class TicTacToeGame:
             board_str += f"| {formatted_row} |\n"
         board_str += "  0   1   2  \n"
         conn.sendall(board_str.encode())
+
 
     def check_win(self):
         for i in range(3):
@@ -41,23 +43,51 @@ class TicTacToeServer:
 
     def play_game(self, conn1, conn2):
         game = TicTacToeGame()
-        conn1.sendall("You are Xs\n".encode())
-        conn2.sendall("You are Os\n".encode())
+        try:
+            conn1.sendall("You are Xs\n".encode())
+        except socket.error:
+            conn2.sendall("Player 1 disconnected, closing connection...")
+            return
+        try:
+            conn2.sendall("You are Os\n".encode())
+        except socket.error:
+            conn1.sendall("Player 2 disconnected, closing connection...")
+            return
+
 
         while True:
             for conn in (conn1, conn2):
                 game.send_board(conn)
-
+                
             current_conn = conn1 if game.current_player == 'X' else conn2
             waiting_conn = conn2 if current_conn == conn1 else conn1
-
-            current_conn.sendall("Your turn...\n".encode())
-            waiting_conn.sendall("Waiting for other player...\n".encode())
+            try:
+                current_conn.sendall("Your turn...\n".encode())
+            except socket.error:
+                s = "Opponent disconnected, closing connection..."
+                waiting_conn.sendall(s.encode())
+                return
+            try:
+                time.sleep(1)
+                waiting_conn.sendall("Waiting for other player...\n".encode())
+            except socket.error:
+                s = "Opponent disconnected, closing connection..."
+                current_conn.sendall(s.encode())
+                return
 
             valid_move = False
             while not valid_move:
-                current_conn.sendall("Enter your move (row,col): ".encode())
+                try:
+                    current_conn.sendall("Enter your move (row,col): ".encode())
+                except socket.error:
+                    s = "Opponent disconnected, closing connection..."
+                    waiting_conn.sendall(s.encode())
+                    return
                 move = current_conn.recv(1024).decode().strip()
+                if not move:
+                    s = "Opponent disconnected, closing connection..."
+                    waiting_conn.sendall(s.encode())
+                    return
                 try:
                     row, col = map(int, move.split(','))
                     if game.make_move(row, col):
