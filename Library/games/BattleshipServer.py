@@ -14,7 +14,7 @@ class BattleshipGame:
         self.guessedp1 = set()
         self.guessedp2 = set()
 
-   
+    #places ship at provided coordinate
     def place_ship(self, player, x, y):
         if player == 1:
             if (x, y) in self.p1ships:
@@ -31,6 +31,7 @@ class BattleshipGame:
             self.p2ships.append((x, y))
             return True
 
+    #checks if hit or miss
     def check_hit(self, x, y, player):
         player = 1 - player
         if player == 1:
@@ -72,6 +73,7 @@ class BattleshipServer:
         self.server_socket.close()
         self.setup_game()
 
+    #sets up boards for players
     def setup_game(self):
         game = BattleshipGame()
         print("Starting Game...")
