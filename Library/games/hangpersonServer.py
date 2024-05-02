@@ -1,6 +1,7 @@
 import socket
 import time
 
+# player class for each player 
 class player:
     def __init__(self):
         self.guesses = set()
@@ -13,6 +14,7 @@ class hangpersonGame:
         self.current_player = 0
         self.players = [p1, p2]
 
+    # send game info to a given player
     def send_state(self, conn, player):
         current = self.players[player]
         state_str = "Opponent's Progress: \n" + ' '.join(current.opp_guess) + "\n"
@@ -21,18 +23,21 @@ class hangpersonGame:
         state_str += "\nGuesses: " + str(list(current.guesses)) + "\n"
         conn.sendall(state_str.encode())
 
+    # check to see if guess has been completed 
     def check_win(self, player):
         check = self.players[1 - player]
         if check.word == check.opp_guess:
             return True
         return False
-    
+
+    # check to see if hangperson is "hung"
     def check_loss(self, player):
         # check if hangperson is at max 
         if self.players[player].person == 6: 
             return True
         return False
 
+    # check if an inputted guess is valid, if it is, update guess
     def make_move(self, move, player):
         # return true if a move is valid 
         current = self.players[player]
@@ -48,7 +53,8 @@ class hangpersonGame:
                 current.person += 1
             return True
         return False
-    
+
+    # update the guess variable by replacing underscores with guess when applicable
     def update_guess(self, move, opp_guess, word):
         word_arr = list(word)
         guess_arr = list(opp_guess)
@@ -58,7 +64,8 @@ class hangpersonGame:
                 guess_arr[idx] = move
             idx += 1
         return ''.join(guess_arr)
-    
+
+    # check if an inputted word is valid, if it is, update player's word
     def check_word(self, word, player): 
         if word.isalpha() and len(word) > 1:
             self.players[player].word = word.lower()
@@ -66,6 +73,7 @@ class hangpersonGame:
             return True
         return False
 
+    # switch current player
     def switch_player(self):
         self.current_player = 0 if self.current_player == 1 else 1
 
@@ -96,6 +104,7 @@ class hangpersonServer:
             print("Connection error, closing game...")
             return
 
+        # game loop, exits when end condition is met
         words_in = 0
         while True:
             player = game.current_player
@@ -147,6 +156,7 @@ class hangpersonServer:
                     except ValueError:
                         current_conn.sendall("Invalid input. Please enter a word consisting of alphabetic characters greater than length 1\n".encode())
             else:
+                # players have entered words
                 valid_move = False
                 while not valid_move:
                     try:
@@ -170,11 +180,13 @@ class hangpersonServer:
                     except ValueError:
                         current_conn.sendall("Invalid input. Please enter a single letter.\n".encode())
 
+                # check if loss condition is met 
                 if game.check_loss(player):
                     current_conn.sendall("\nSorry, you lost!\n".encode())
                     waiting_conn.sendall("\nOther player lost!\n".encode())
                     break
 
+                # check if win condition is met
                 if game.check_win(player):
                     game.send_state(current_conn, player)
                     game.send_state(waiting_conn, 1 - player)
@@ -185,6 +197,7 @@ class hangpersonServer:
 
             game.switch_player()
 
+# class for storing the hangpeople images 
 class hangpeople:
     people = ['''
   +---+
