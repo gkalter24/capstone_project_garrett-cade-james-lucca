@@ -72,7 +72,7 @@ class hangpersonGame:
 class hangpersonServer:
 
     def __init__(self, server_socket, players):
-        self.host = "127.0.0.1"
+        self.host = "149.43.80.29"
         self.port = 5000
         self.server_socket = server_socket
         self.players = players

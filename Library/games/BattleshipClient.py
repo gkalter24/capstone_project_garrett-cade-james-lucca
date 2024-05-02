@@ -4,7 +4,7 @@ from termios import TCIFLUSH, tcflush
 
 class BattleshipClient:
     def __init__(self, client_sock):
-        self.host = "127.0.0.1"
+        self.host = "149.43.80.29"
         self.port = 5587
         self.client_socket = client_sock
         #self.connect()

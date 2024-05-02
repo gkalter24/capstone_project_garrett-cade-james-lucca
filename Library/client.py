@@ -8,7 +8,7 @@ from games.Connect4Client import *
 from games.tClient import *
 
 def main():
-    host = '127.0.0.1'
+    host = '149.43.80.29'
     port = 5000
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:

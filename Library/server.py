@@ -9,7 +9,6 @@ from games.tServer import *
 from games.tClient import *
 from games.hangpersonClient import *
 from games.hangpersonServer import *
-from games.hangpeople import *
 
 game_options = {
     '1': BattleshipServer,
@@ -99,7 +98,7 @@ def startHangServer(sock, playerArray):
     return
 
 def main():
-    host = '127.0.0.1'  
+    host = '149.43.80.29'  
     port = 5000
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -131,7 +130,7 @@ def main():
 
 def restartLibrary(server_socket):
     print("Waiting for new connections...")
-    host = '127.0.0.1'  
+    host = '149.43.80.29'  
     port = 5000
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)

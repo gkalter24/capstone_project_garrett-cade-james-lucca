@@ -52,7 +52,7 @@ class BattleshipGame:
 
 class BattleshipServer:
     def __init__(self, client_sock, players):
-        self.host = "127.0.0.1"
+        self.host = "149.43.80.29"
         self.port = 5587
         self.server_socket = client_sock
         self.players = players
@@ -83,7 +83,6 @@ class BattleshipServer:
         while True:
             for i, client_socket in enumerate(self.players):
                 opponent_socket = self.players[1 - i]
-                #print(str(i))
                 num1 = 5 - len(game.guessedp1) 
                 num2 = 5 - len(game.guessedp2)
                 time.sleep(1)
