@@ -45,7 +45,7 @@ class ConnectFourGame:
 
 class ConnectFourServer:
     def __init__(self, server_sock, players):
-        self.host = "127.0.0.1"
+        self.host = "149.43.80.29"
         self.port = 5000
         self.server_socket = server_sock
         self.players = players
