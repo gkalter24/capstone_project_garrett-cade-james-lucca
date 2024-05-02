@@ -9,11 +9,13 @@ class ConnectFourGame:
         self.current_player = 'X'
 
     def send_board(self, conn):
-        conn.sendall("Current Board:\n".encode())
+        full_board = "Current Board:\n"
         for row in self.board:
             formatted_row = " | ".join(row)
-            conn.sendall(f"| {formatted_row} |\n".encode())
-        conn.sendall("  0   1   2   3   4   5   6  \n".encode())
+            full_board += f"| {formatted_row} |\n"
+        full_board += "  0   1   2   3   4   5   6  \n"
+        
+        conn.sendall(full_board.encode())
 
     def check_win(self):
         directions = [(0, 1), (1, 0), (1, 1), (1, -1)]
@@ -127,7 +129,3 @@ class ConnectFourServer:
                 break
 
             game.switch_player()
-    
-    def cleanup(self):
-        for client_socket in self.players:
-            client_socket.close()
