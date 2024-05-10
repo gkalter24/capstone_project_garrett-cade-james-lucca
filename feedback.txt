@@ -1,0 +1,8 @@
+OVERALL: Borderline Satisfactory/Progressing
+
+* Server and client should take command-line arguments to specify IP address and port, instead of them being hardcoded
+* A server that can handle an arbitrary number of pairs of clients (instead of just a single pair) would be ideal
+* Client prints "server full" message when server is not even running – "server unavailable" would be more appropriate
+* Server crashes when a game ends or a player disconnects
+* If server is terminated while playing connect four or hangperson the client enters an infinite loop
+* play_game methods for server side of games are quite long
